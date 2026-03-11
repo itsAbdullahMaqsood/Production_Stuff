@@ -30,7 +30,13 @@ class NotificationViewModel extends ChangeNotifier {
       return;
     }
 
-    await service.sendNotification(null);
+    final dummy = RemoteMessage(
+      notification: RemoteNotification(title: "No Title", body: "No Body"),
+    );
+
+    await service.sendNotification(
+      dummy
+    );
     notifyListeners();
   }
 

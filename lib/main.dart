@@ -34,18 +34,22 @@ class NotifApp extends StatelessWidget {
         Provider<DatabaseService>.value(value: db),
 
         ProxyProvider<DatabaseService, HistoryService>(
-          update: (_, database, __) => HistoryService(database),
+          update: (_, database, _) => HistoryService(database),
         ),
 
-        ChangeNotifierProxyProvider<HistoryService, HistoryViewModel>(
-          create: (c) => HistoryViewModel(c.read<HistoryService>()),
-          update: (_, historyService, previous) =>
-              previous ?? HistoryViewModel(historyService),
-        ),
+        Provider<NotificationService>(create: (_) => NotificationService()),
 
-        ProxyProvider<HistoryViewModel, NotificationService>(
-          update: (_, historyVm, __) =>
-              NotificationService(onNotificationShown: historyVm.addEntry),
+        ChangeNotifierProxyProvider2<
+          HistoryService,
+          NotificationService,
+          HistoryViewModel
+        >(
+          create: (context) => HistoryViewModel(
+            context.read<HistoryService>(),
+            context.read<NotificationService>(),
+          ),
+          update: (_, historyService, notificationService, previous) =>
+              previous ?? HistoryViewModel(historyService, notificationService),
         ),
 
         ChangeNotifierProxyProvider<NotificationService, NotificationViewModel>(
