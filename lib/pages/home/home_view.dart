@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/history_viewmodel.dart';
-import '../viewmodels/notification_viewmodel.dart';
-import '../routes/app_routes.dart';
+import '../notification_history/history_viewmodel.dart';
+import '../notification_history/notification_viewmodel.dart';
+import '../../routes/app_routes.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});

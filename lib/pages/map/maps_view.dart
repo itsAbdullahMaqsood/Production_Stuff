@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:notif_analytics/widgets/floating_button.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/maps_viewmodel.dart';
+import 'maps_viewmodel.dart';
 
 class MapsView extends StatelessWidget {
   const MapsView({super.key});
@@ -29,7 +30,6 @@ class MapsView extends StatelessWidget {
             mapType: MapType.normal,
             markers: vm.markers,
             polylines: vm.polylines,
-            polygons: vm.polygons,
             circles: vm.circles,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
@@ -63,7 +63,7 @@ class MapsView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Text('Finding your location…'),
+                        const Text('Fetching location…'),
                       ],
                     ),
                   ),
@@ -102,41 +102,41 @@ class MapsView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _SpeedDialItem(
+                  FloatingButtonItem(
                     label: 'Add Marker',
                     icon: Icons.location_pin,
                     color: Colors.red,
                     onTap: () =>
                         context.read<MapsViewModel>().addDefaultMarker(),
                   ),
-                  _SpeedDialItem(
+                  FloatingButtonItem(
                     label: 'Custom Marker',
                     icon: Icons.push_pin_outlined,
                     color: const Color(0xFF6750A4),
                     onTap: () =>
                         context.read<MapsViewModel>().addCustomMarker(),
                   ),
-                  _SpeedDialItem(
+                  FloatingButtonItem(
                     label: 'Remove Selected',
                     icon: Icons.location_off_outlined,
                     color: Colors.deepOrange,
                     onTap: () =>
                         context.read<MapsViewModel>().removeSelectedMarker(),
                   ),
-                  _SpeedDialItem(
+                  FloatingButtonItem(
                     label: 'Static Polyline',
                     icon: Icons.timeline_outlined,
                     color: Colors.blue,
                     onTap: () =>
                         context.read<MapsViewModel>().addStaticPolyline(),
                   ),
-                  _SpeedDialItem(
+                  FloatingButtonItem(
                     label: 'Add Circle',
                     icon: Icons.circle_outlined,
                     color: Colors.purple,
                     onTap: () => context.read<MapsViewModel>().addCircle(),
                   ),
-                  _SpeedDialItem(
+                  FloatingButtonItem(
                     label: 'Clear All',
                     icon: Icons.layers_clear_outlined,
                     color: Colors.grey,
@@ -144,60 +144,6 @@ class MapsView extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SpeedDialItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _SpeedDialItem({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 42,
-            height: 42,
-            child: FloatingActionButton.small(
-              heroTag: label,
-              onPressed: onTap,
-              backgroundColor: color,
-              foregroundColor: Colors.white,
-              child: Icon(icon, size: 18),
             ),
           ),
         ],

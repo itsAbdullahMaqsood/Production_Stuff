@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/notification_entry.dart';
-import '../services/history_service.dart';
+import '../../models/notification_entry.dart';
+import '../../services/history_service.dart';
 
 class HistoryViewModel extends ChangeNotifier {
   final HistoryService? _service;

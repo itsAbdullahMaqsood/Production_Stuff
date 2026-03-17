@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_view.dart';
-import 'maps_view.dart';
-import 'analytics_view.dart';
+import 'pages/home/home_view.dart';
+import 'pages/map/maps_view.dart';
+import 'pages/analytics/analytics_view.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

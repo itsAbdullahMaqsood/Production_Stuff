@@ -3,12 +3,14 @@ import 'package:notif_analytics/services/history_service.dart';
 import 'package:notif_analytics/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'services/database_service.dart';
-import 'viewmodels/history_viewmodel.dart';
-import 'viewmodels/notification_viewmodel.dart';
+import 'pages/notification_history/history_viewmodel.dart';
+import 'pages/notification_history/notification_viewmodel.dart';
 import 'routes/app_routes.dart';
-import 'viewmodels/maps_viewmodel.dart';
-import 'views/history_view.dart';
-import 'views/maps_screen.dart';
+import 'pages/map/maps_viewmodel.dart';
+import 'pages/notification_history/history_view.dart';
+import 'pages/map/maps_view.dart';
+import 'pages/analytics/analytics_view.dart';
+import 'navigation_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -109,6 +111,9 @@ class MyAppState extends State<MyApp> {
       themeMode: ThemeMode.system,
       home: const MainScreen(),
       routes: {
+        AppRoutes.home: (_) => const MainScreen(),
+        AppRoutes.maps: (_) => const MapsView(),
+        AppRoutes.analytics: (_) => const AnalyticsView(),
         AppRoutes.history: (_) => const HistoryView(),
       },
     );

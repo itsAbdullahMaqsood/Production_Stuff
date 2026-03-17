@@ -251,14 +251,6 @@ class MapsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  final Map<String, Polygon> _polygonMap = {};
-  Set<Polygon> get polygons => _polygonMap.values.toSet();
-
-  void clearPolygons() {
-    _polygonMap.clear();
-    notifyListeners();
-  }
-
   final Map<String, Circle> _circleMap = {};
   Set<Circle> get circles => _circleMap.values.toSet();
 
@@ -287,7 +279,6 @@ class MapsViewModel extends ChangeNotifier {
   void clearAll() {
     _markerMap.clear();
     _polylineMap.clear();
-    _polygonMap.clear();
     _circleMap.clear();
     _selectedMarkerId = null;
     notifyListeners();

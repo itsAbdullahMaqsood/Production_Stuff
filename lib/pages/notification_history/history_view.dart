@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/history_viewmodel.dart';
-import '../widgets/history_tile.dart';
+import 'history_viewmodel.dart';
+import '../../widgets/history_tile.dart';
 
 class HistoryView extends StatelessWidget {
   const HistoryView({super.key});
