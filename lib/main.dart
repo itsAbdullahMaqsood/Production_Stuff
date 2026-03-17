@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+   import 'package:flutter/material.dart';
 import 'package:notif_analytics/services/history_service.dart';
 import 'package:notif_analytics/services/notification_service.dart';
 import 'package:provider/provider.dart';
@@ -6,8 +6,9 @@ import 'services/database_service.dart';
 import 'viewmodels/history_viewmodel.dart';
 import 'viewmodels/notification_viewmodel.dart';
 import 'routes/app_routes.dart';
+import 'viewmodels/maps_viewmodel.dart';
 import 'views/history_view.dart';
-import 'views/home_view.dart';
+import 'views/maps_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -32,12 +33,13 @@ class NotifApp extends StatelessWidget {
       providers: [
         /// DATABASE
         Provider<DatabaseService>.value(value: db),
+   Provider<DatabaseService>.value(value: db),
 
         ProxyProvider<DatabaseService, HistoryService>(
-          update: (_, database, __) => HistoryService(database),
+           update: (_, database, __) => HistoryService(database),
         ),
 
-        ChangeNotifierProxyProvider<HistoryService, HistoryViewModel>(
+       ChangeNotifierProxyProvider<HistoryService, HistoryViewModel>(
           create: (c) => HistoryViewModel(c.read<HistoryService>()),
           update: (_, historyService, previous) =>
               previous ?? HistoryViewModel(historyService),
@@ -53,6 +55,10 @@ class NotifApp extends StatelessWidget {
               NotificationViewModel(service: c.read<NotificationService>()),
           update: (_, service, previous) =>
               previous ?? NotificationViewModel(service: service),
+        ),
+
+        ChangeNotifierProvider<MapsViewModel>(
+          create: (_) => MapsViewModel(),
         ),
       ],
       child: const MyApp(),
@@ -101,9 +107,8 @@ class MyAppState extends State<MyApp> {
         ),
       ),
       themeMode: ThemeMode.system,
-      initialRoute: AppRoutes.home,
+      home: const MainScreen(),
       routes: {
-        AppRoutes.home: (_) => const HomeView(),
         AppRoutes.history: (_) => const HistoryView(),
       },
     );
