@@ -1,12 +1,45 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'location_tracking_viewmodel.dart';
 import '../notification_history/history_viewmodel.dart';
 import '../notification_history/notification_viewmodel.dart';
 import '../../routes/app_routes.dart';
 
-class HomeView extends StatelessWidget {
+String _formatRemaining(Duration d) {
+  final minutes = d.inMinutes;
+  final seconds = d.inSeconds % 60;
+  if (minutes > 0) {
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+  return '0:${seconds.toString().padLeft(2, '0')}';
+}
+
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _showPermanentlyDeniedDialog(
     BuildContext context,
@@ -39,6 +72,7 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notifVm = context.watch<NotificationViewModel>();
+    final locationVm = context.watch<LocationTrackingViewModel>();
     final int count = context.watch<HistoryViewModel>().count;
     final ColorScheme colors = Theme.of(context).colorScheme;
 
@@ -46,6 +80,25 @@ class HomeView extends StatelessWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showPermanentlyDeniedDialog(context, notifVm);
       });
+    }
+
+    final oneOff = notifVm.oneOffRemaining;
+    final local = notifVm.localScheduledRemaining;
+    final periodic = notifVm.periodicRemaining;
+    if (oneOff != null && oneOff <= Duration.zero) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => notifVm.clearOneOffTimer(),
+      );
+    }
+    if (local != null && local <= Duration.zero) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => notifVm.clearLocalTimer(),
+      );
+    }
+    if (periodic != null && periodic <= Duration.zero) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => notifVm.refreshPeriodicCountdown(),
+      );
     }
 
     return Scaffold(
@@ -129,16 +182,93 @@ class HomeView extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.history),
-                  icon: const Icon(Icons.history_rounded),
+                  onPressed: () => locationVm.toggleTracking(),
+                  icon: Icon(
+                    locationVm.isTracking
+                        ? Icons.location_off_rounded
+                        : Icons.location_searching_rounded,
+                  ),
+                  label: Text(
+                    locationVm.isTracking
+                        ? 'Stop Realtime Location'
+                        : 'Start Realtime Location',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              if (locationVm.lastError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  locationVm.lastError!,
+                  style: TextStyle(fontSize: 13, color: colors.error),
+                ),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton.icon(
+                  onPressed: () => notifVm.scheduleLocal(
+                    id: 42,
+                    title: 'Scheduled notification',
+                    body: 'This was scheduled 1 minute ago.',
+                    DelayTime: const Duration(minutes: 1),
+                  ),
+                  icon: const Icon(Icons.schedule_rounded),
                   label: const Text(
-                    'Notifs History',
+                    'Schedule to send after (Now+1 min)', //using local notifications
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton.icon(
+                  onPressed: () => notifVm.triggerOneOffBackgroundReminder(),
+                  icon: const Icon(Icons.timer_rounded),
+                  label: const Text(
+                    'Schedule to send after 10 secs', //using WorkManager
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+
               const Spacer(),
+              if (oneOff != null || local != null || periodic != null) ...[
+                Text(
+                  'Scheduled timers',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (oneOff != null)
+                  _TimerRow(
+                    label: 'One-off (10s)',
+                    remaining: oneOff,
+                    colors: colors,
+                  ),
+                if (local != null)
+                  _TimerRow(
+                    label: 'Local (1 min)',
+                    remaining: local,
+                    colors: colors,
+                  ),
+                if (periodic != null)
+                  _TimerRow(
+                    label: 'Periodic (~15 min)',
+                    remaining: periodic,
+                    colors: colors,
+                  ),
+                const SizedBox(height: 20),
+              ],
               Center(
                 child: Text(
                   count == 0
@@ -154,6 +284,46 @@ class HomeView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TimerRow extends StatelessWidget {
+  const _TimerRow({
+    required this.label,
+    required this.remaining,
+    required this.colors,
+  });
+
+  final String label;
+  final Duration remaining;
+  final ColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: colors.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          Text(
+            _formatRemaining(remaining),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: colors.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

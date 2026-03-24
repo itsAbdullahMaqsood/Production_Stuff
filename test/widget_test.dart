@@ -1,30 +1,39 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
-import 'package:notif_analytics/main.dart';
+import 'package:notif_analytics/pages/home/home_view.dart';
+import 'package:notif_analytics/pages/notification_history/history_viewmodel.dart';
+import 'package:notif_analytics/pages/notification_history/notification_viewmodel.dart';
+import 'package:notif_analytics/services/notification_service.dart';
+import 'package:notif_analytics/services/workmanager_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('HomeView renders with providers', (WidgetTester tester) async {
+    // final notifService = NotificationService(onNotificationShown: () async {});
+    final workManagerService = WorkManagerService();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // await tester.pumpWidget(
+    //   // MultiProvider(
+    //   //   // providers: [
+    //   //   //   ChangeNotifierProvider<HistoryViewModel>(
+    //   //   //     create: (_) => HistoryViewModel(null),
+    //   //   //   ),
+    //   //   //   ChangeNotifierProvider<NotificationViewModel>(
+    //   //   //     // create: (_) => NotificationViewModel(
+    //   //   //       // service: notifService,
+    //   //   //       workManagerService: workManagerService,
+    //   //   //     ),
+    //   //   //   ),
+    //   //   // ],
+    //   //   child: const MaterialApp(home: HomeView()),
+    //   // ),
+    // );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Notifier'), findsOneWidget);
+    expect(find.text('Send Notification'), findsOneWidget);
+    expect(find.text('Schedule to send after 1 minute'), findsOneWidget);
+    expect(find.text('Trigger background task (10s)'), findsOneWidget);
+    expect(find.text('Debug: list background tasks'), findsOneWidget);
   });
 }

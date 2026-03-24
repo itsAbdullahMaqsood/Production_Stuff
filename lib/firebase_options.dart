@@ -53,6 +53,7 @@ class DefaultFirebaseOptions {
     projectId: 'notifanalytics',
     authDomain: 'notifanalytics.firebaseapp.com',
     storageBucket: 'notifanalytics.firebasestorage.app',
+    databaseURL: 'https://notifanalytics-default-rtdb.firebaseio.com',
     measurementId: 'G-53RR71VYL6',
   );
 
@@ -62,6 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '864017662235',
     projectId: 'notifanalytics',
     storageBucket: 'notifanalytics.firebasestorage.app',
+    databaseURL: 'https://notifanalytics-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -70,6 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '864017662235',
     projectId: 'notifanalytics',
     storageBucket: 'notifanalytics.firebasestorage.app',
+    databaseURL: 'https://notifanalytics-default-rtdb.firebaseio.com',
     iosBundleId: 'com.example.notifAnalytics',
   );
 }

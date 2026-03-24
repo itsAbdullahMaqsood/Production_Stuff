@@ -1,9 +1,16 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapsViewModel extends ChangeNotifier {
+  MapsViewModel() {
+    initCustomMarker();
+  }
+
   GoogleMapController? _mapController;
 
   void onMapCreated(GoogleMapController controller) {
@@ -20,20 +27,10 @@ class MapsViewModel extends ChangeNotifier {
   CameraPosition get initialCameraPosition =>
       const CameraPosition(target: _defaultCenter, zoom: 13.0);
 
-  Future<void> animateCameraTo(
-    LatLng target, {
-    double zoom = 14.0,
-    double tilt = 0.0,
-    double bearing = 0.0,
-  }) async {
+  Future<void> animateCameraTo(LatLng target, {double zoom = 14.0}) async {
     await _mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: target,
-          zoom: zoom,
-          tilt: tilt,
-          bearing: bearing,
-        ),
+        CameraPosition(target: target, zoom: zoom),
       ),
     );
   }
@@ -100,7 +97,7 @@ class MapsViewModel extends ChangeNotifier {
       _currentLocation = LatLng(position.latitude, position.longitude);
       await animateCameraTo(_currentLocation!, zoom: 15.0);
     } catch (e) {
-      _locationError = 'Could not fetch location.';
+      _locationError = 'Could not fetch location';
     } finally {
       _isLoadingLocation = false;
       notifyListeners();
@@ -116,10 +113,12 @@ class MapsViewModel extends ChangeNotifier {
   BitmapDescriptor? _customIcon;
 
   Future<void> loadCustomIcon() async {
-    _customIcon = await BitmapDescriptor.asset(
-      const ImageConfiguration(size: Size(48, 48)),
-      'assets/markers/custom_pin.png',
-    );
+    try {
+      final data = await rootBundle.load('assets/markers/gcitar.jpg');
+      _customIcon = BitmapDescriptor.bytes(data.buffer.asUint8List());
+    } catch (_) {
+      _customIcon = null;
+    }
   }
 
   int _markerCounter = 0;
@@ -148,25 +147,24 @@ class MapsViewModel extends ChangeNotifier {
     }
   }
 
-  static const List<List<double>> _offsets = [
-    [0.0, 0.0],
-    [0.001, 0.0],
-    [-0.001, 0.0],
-    [0.0, 0.001],
-    [0.0, -0.001],
-    [0.001, 0.001],
-    [-0.001, -0.001],
-    [0.001, -0.001],
-    [-0.001, 0.001],
-  ];
+  LatLng randomNearMeters(LatLng origin, {double radiusMeters = 100}) {
+    //Ye Math AI se karwaya hai
+    final rng = math.Random();
+    const mPerDegLat = 111320.0;
+    final latRad = origin.latitude * math.pi / 180.0;
+    final maxLatDeg = radiusMeters / mPerDegLat;
+    final maxLngDeg = radiusMeters / (mPerDegLat * math.cos(latRad).abs());
+    final dLat = (rng.nextDouble() * 2 - 1) * maxLatDeg;
+    final dLng = (rng.nextDouble() * 2 - 1) * maxLngDeg;
+    return LatLng(origin.latitude + dLat, origin.longitude + dLng);
+  }
 
   Future<void> addDefaultMarker() async {
     if (_currentLocation == null) await fetchCurrentLocation();
     final origin = _currentLocation;
     if (origin == null) return;
     _markerCounter++;
-    final off = _offsets[_markerCounter % _offsets.length];
-    final point = LatLng(origin.latitude + off[0], origin.longitude + off[1]);
+    final point = randomNearMeters(origin, radiusMeters: 100);
     final id = 'default_$_markerCounter';
     final address = await _getAddress(point);
     final marker = Marker(
@@ -190,8 +188,7 @@ class MapsViewModel extends ChangeNotifier {
     final origin = _currentLocation;
     if (origin == null) return;
     _customCounter++;
-    final off = _offsets[(_customCounter + 4) % _offsets.length];
-    final point = LatLng(origin.latitude + off[0], origin.longitude + off[1]);
+    final point = randomNearMeters(origin, radiusMeters: 100);
     final id = 'custom_$_customCounter';
     final address = await _getAddress(point);
     final marker = Marker(
@@ -311,7 +308,7 @@ class MapsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> init() async {
+  Future<void> initCustomMarker() async {
     await loadCustomIcon();
   }
 }
