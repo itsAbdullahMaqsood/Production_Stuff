@@ -17,10 +17,6 @@ import 'firebase_options.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'background/firbase_location_background.dart';
 
-Future<void> main() async {
-  await bootstrap(flavor: AppFlavor.production);
-}
-
 Future<void> bootstrap({required AppFlavor flavor}) async {
   WidgetsFlutterBinding.ensureInitialized();
   try {

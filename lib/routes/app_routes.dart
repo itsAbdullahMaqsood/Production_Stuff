@@ -65,34 +65,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
                 service: LocationRealtimeService(),
               ),
             ),
-            // Provider<HistoryService>(
-            //   create: (ctx) => HistoryService(ctx.read<DatabaseService>()),
-            // ),
-            // ChangeNotifierProxyProvider<HistoryService, HistoryViewModel>(
-            //   create: (ctx) {
-            //     final vm = HistoryViewModel(ctx.read<HistoryService>());
-            //     vm.loadEntries();
-            //     return vm;
-            //   },
-            //   update: (_, historyService, previous) =>
-            //       previous ?? HistoryViewModel(historyService),
-            // ),
-            // ChangeNotifierProxyProvider2<
-            //   NotificationService,
-            //   WorkManagerService,
-            //   NotificationViewModel
-            // >(
-            //   create: (ctx) => NotificationViewModel(
-            //     service: ctx.read<NotificationService>(),
-            //     workManagerService: ctx.read<WorkManagerService>(),
-            //   )..init(),
-            //   update: (_, notificationService, workManagerService, previous) =>
-            //       previous ??
-            //       NotificationViewModel(
-            //         service: notificationService,
-            //         workManagerService: workManagerService,
-            //       ),
-            // ),
           ],
           child: const HomeView(),
         ),
@@ -113,9 +85,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => MultiProvider(
           providers: [
-            //   Provider<HistoryService>(
-            //     create: (ctx) => HistoryService(ctx.read<DatabaseService>()),
-            //   ),
             ChangeNotifierProxyProvider<HistoryService, HistoryViewModel>(
               create: (ctx) {
                 final vm = HistoryViewModel(ctx.read<HistoryService>());
