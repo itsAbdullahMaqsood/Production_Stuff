@@ -13,6 +13,7 @@ import 'package:notif_analytics/pages/map/maps_viewmodel.dart';
 import 'package:notif_analytics/pages/map/maps_view.dart';
 import 'package:notif_analytics/pages/analytics/analytics_view.dart';
 import 'package:notif_analytics/pages/notification_history/notification_history_view.dart';
+import 'package:notif_analytics/pages/sockets/sockets_view.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name as String) {
@@ -115,6 +116,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
           child: const NotificationHistoryView(),
         ),
       );
+
+    case SocketsView.route:
+      return MaterialPageRoute(builder: (_) => const SocketsView());
 
     default:
       return MaterialPageRoute(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:notif_analytics/pages/notification_history/notification_history_view.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'home_location_tracking_viewmodel.dart';
 import '../notification_history/history_viewmodel.dart';
 import '../notification_history/notification_viewmodel.dart';
+import '../sockets/sockets_view.dart';
 
 String _formatRemaining(Duration d) {
   final minutes = d.inMinutes;
@@ -34,6 +36,7 @@ class _HomeViewState extends State<HomeView> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+    FirebaseAnalytics.instance.logScreenView(screenName: 'home_view');
   }
 
   @override
@@ -79,7 +82,7 @@ class _HomeViewState extends State<HomeView> {
     >(
       builder: (context, notifVm, locationVm, historyVm, _) {
         final ColorScheme colors = Theme.of(context).colorScheme;
-
+        final analytics = FirebaseAnalytics.instance;
         if (notifVm == null || locationVm == null) {
           return Scaffold(
             backgroundColor: colors.surface,
@@ -116,6 +119,16 @@ class _HomeViewState extends State<HomeView> {
 
         return Scaffold(
           backgroundColor: colors.surface,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              analytics.logEvent(
+                name: 'app_crashed_intentionally',
+                parameters: {'reason': 'test crash'},
+              );
+              throw Exception('Test crash');
+            },
+            child: const Text('Test Crash!', textAlign: TextAlign.center),
+          ),
           appBar: AppBar(
             backgroundColor: colors.surface,
             elevation: 0,
@@ -185,7 +198,13 @@ class _HomeViewState extends State<HomeView> {
                     width: double.infinity,
                     height: 56,
                     child: FilledButton.icon(
-                      onPressed: () => notifVm.checkAndSend(),
+                      onPressed: () => {
+                        analytics.logEvent(
+                          name: 'notification_triggered',
+                          parameters: {'status': 'triggered'},
+                        ),
+                        notifVm.checkAndSend(),
+                      },
                       icon: const Icon(Icons.send_rounded),
                       label: const Text(
                         'Send Notification',
@@ -201,7 +220,38 @@ class _HomeViewState extends State<HomeView> {
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton.icon(
-                      onPressed: () => locationVm.toggleTracking(),
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          SocketsView.route,
+                        );
+                      },
+                      icon: const Icon(Icons.wifi_tethering_rounded),
+                      label: const Text(
+                        'Open Sockets',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: () => {
+                        analytics.logEvent(
+                          name: 'background_tracking_toggled',
+                          parameters: {
+                            'status': locationVm.isTracking
+                                ? 'stopped'
+                                : 'started',
+                          },
+                        ),
+                        locationVm.toggleTracking(),
+                      },
                       icon: Icon(
                         locationVm.isTracking
                             ? Icons.location_off_rounded
@@ -230,12 +280,18 @@ class _HomeViewState extends State<HomeView> {
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton.icon(
-                      onPressed: () => notifVm.scheduleLocal(
-                        id: 42,
-                        title: 'Scheduled notification',
-                        body: 'This was scheduled 1 minute ago.',
-                        DelayTime: const Duration(minutes: 1),
-                      ),
+                      onPressed: () => {
+                        analytics.logEvent(
+                          name: 'local_notification_scheduled',
+                          parameters: {'status': 'scheduled'},
+                        ),
+                        notifVm.scheduleLocal(
+                          id: 42,
+                          title: 'Scheduled notification',
+                          body: 'This was scheduled 1 minute ago.',
+                          DelayTime: const Duration(minutes: 1),
+                        ),
+                      },
                       icon: const Icon(Icons.schedule_rounded),
                       label: const Text(
                         'Schedule to send after (Now+1 min)', //using local notifications
@@ -251,8 +307,13 @@ class _HomeViewState extends State<HomeView> {
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton.icon(
-                      onPressed: () =>
-                          notifVm.triggerOneOffBackgroundReminder(),
+                      onPressed: () => {
+                        analytics.logEvent(
+                          name: 'one_off_background_reminder_triggered',
+                          parameters: {'status': 'triggered'},
+                        ),
+                        notifVm.triggerOneOffBackgroundReminder(),
+                      },
                       icon: const Icon(Icons.timer_rounded),
                       label: const Text(
                         'Schedule to send after 10 secs', //using WorkManager
@@ -277,8 +338,15 @@ class _HomeViewState extends State<HomeView> {
                       Spacer(),
                       Switch(
                         value: locationVm.allowTracking,
-                        onChanged: (value) =>
-                            locationVm.toggleBackgroundTracking(value),
+                        onChanged: (value) => {
+                          analytics.logEvent(
+                            name: 'background_tracking_toggled',
+                            parameters: {
+                              'status': value ? 'started' : 'stopped',
+                            },
+                          ),
+                          locationVm.toggleBackgroundTracking(value),
+                        },
                       ),
                     ],
                   ),

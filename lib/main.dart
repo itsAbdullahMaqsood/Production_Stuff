@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:ui';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:notif_analytics/background/firebase_messaging_background.dart';
 import 'package:notif_analytics/config/app_flavor.dart';
@@ -17,6 +19,30 @@ import 'firebase_options.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'background/firbase_location_background.dart';
 
+Future<void> main() async {
+  await bootstrap(flavor: _resolveFlavor());
+}
+
+AppFlavor _resolveFlavor() {
+  const flavorValue = String.fromEnvironment(
+    'FLAVOR',
+    defaultValue: 'development',
+  );
+
+  switch (flavorValue.toLowerCase()) {
+    case 'production':
+    case 'prod':
+      return AppFlavor.production;
+    case 'staging':
+    case 'stage':
+      return AppFlavor.staging;
+    case 'development':
+    case 'dev':
+    default:
+      return AppFlavor.development;
+  }
+}
+
 Future<void> bootstrap({required AppFlavor flavor}) async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -34,6 +60,16 @@ Future<void> bootstrap({required AppFlavor flavor}) async {
     sound: true,
   );
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Pass all uncaught Flutter framework errors to Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  // Pass all uncaught async errors to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
 
   final db = DatabaseService();
   await db.init();
